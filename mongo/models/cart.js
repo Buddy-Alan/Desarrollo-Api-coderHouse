@@ -9,6 +9,11 @@ const cartSchema = new mongoose.Schema(
             type: Date,
             require: true
         },
+        userName: {
+            type: String,
+            require: true,
+            unique: true
+        },
         productos: []
     }
 

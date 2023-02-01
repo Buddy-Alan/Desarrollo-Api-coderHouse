@@ -29,8 +29,6 @@ login.post("/register", (req, res) => {
             if (error) return res.json({ messages: "Hubo un error " })
             res.json({ user, messages: info.messages })
         })
-
-
     })(req, res)
     // rutaPost(req.path)
 });
@@ -47,12 +45,19 @@ login.get("/login", async (req, res) => {
     }
 })
 
-login.post("/login", passport.authenticate("login", {
-    failureRedirect: "/login",
-    failureMessage: true
-}), (req, res) => {
+login.post("/login", (req, res) => {
     rutaPost(req.path)
-    res.redirect("/")
+    passport.authenticate("login", (error, user, info) => {
+
+        if (error || !user) return res.json({ messages: info.messages })
+        req.logIn(user, (error) => {
+            if (error) return res.json({ messages: "Hubo un error" })
+            console.log(req.user)
+            res.json({ user, messages: info.messages })
+        })
+    })(req, res)
+    //     rutaPost(req.path)
+    // res.redirect("/")
 })
 
 
@@ -68,7 +73,7 @@ login.get("/logout", async (req, res) => {
 
 login.post("/logout", async (req, res) => {
     req.logOut((error) => {
-        if (error) res.status(400).json({ messages: "Error al intentar cerrar sesion    " })
+        if (error) res.status(400).json({ messages: "Error al intentar cerrar sesion" })
         res.status(200).json({ messages: "Sesion finalizada" })
         rutaPost(req.path)
     })

@@ -22,6 +22,8 @@ import prueba from "./src/routes/pruebaRandomNmr.js";
 import parsedArgs from "minimist";
 import { logger } from "./logger.js";
 import { productRout } from "./src/routes/routerProducts.js";
+import { cartRout } from "./src/routes/routerCarts.js";
+import { SlowBuffer } from "buffer";
 
 
 
@@ -72,8 +74,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // const carritoRouter = require("./routes/routerCarts")
 // app.use("/api/productos-test", productTest)
-// app.use("/api/carrito", cartRout)
-app.use("/api/productos", productRout)
+
 app.engine("handlebars", engine());
 app.set("views", "./src/views")
 app.set("view engine", "handlebars")
@@ -151,16 +152,16 @@ passport.use("singup", new LocalStrategy(
 passport.use("login", new LocalStrategy(
     {
         passReqToCallback: true,
-        usernameField: "email"
+        usernameField: "userName"
     },
     (req, userName, password, done) => {
         userModels.findOne({ userName: userName }, (err, userFound) => {
-            if (err) return done(err, null, { message: "Hubo un error  al verificar el usuario" })
+            if (err) return done(err, null, { messages: "Hubo un error  al verificar el usuario" })
             const passHash = compareHash(password, userFound.password)
             if (userFound && passHash) {
-                return done(null, userFound)
+                return done(null, userFound, { messages: "El usuario inicio sesion correctamente" })
             } else {
-                return done(null, null, { message: "El usuario y/o contraseña es incorrecta" })
+                return done(null, null, { messages: "El usuario y/o contraseña es incorrecta" })
             }
 
         })
@@ -174,6 +175,8 @@ app.use("/", login)
 app.use("/", info)
 app.use("/", random)
 app.use("/", prueba)
+app.use("/api/carrito", cartRout)
+app.use("/api/productos", productRout)
 app.use(express.static(__dirname + "/src/views/layouts"))
 app.get("*", (req, res) => {
     logger.warn(`Se intento ingresar a la ruta ${req.path}`)

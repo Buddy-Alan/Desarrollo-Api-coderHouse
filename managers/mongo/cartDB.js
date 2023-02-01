@@ -5,10 +5,10 @@ class Cart {
         this.dataBase = dataBase;
     }
 
-    save = async (carritoNuevo) => {
+    save = async (carritoNuevo, user) => {
         try {
             carritoNuevo.stock = 1
-            const carrito = await this.dataBase.insertMany({ timestamp: new Date(), productos: carritoNuevo })
+            const carrito = await this.dataBase.insertMany({ timestamp: new Date(), userName: user, productos: carritoNuevo })
             return carrito
         } catch (error) {
             console.log(error)

@@ -1,7 +1,10 @@
+
+
 export const checkLogin = (req, res, next) => {
-    if (req.user) {
+    if (!!req.user) {
         next()
-    } else {
-        res.json({ messages: "Por Favor Inicia Sesion" })
+    }
+    else {
+        res.json({ messages: "Por favor inice primero sesion" })
     }
 }

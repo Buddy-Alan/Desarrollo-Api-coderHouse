@@ -1,15 +1,14 @@
 
 import { Router } from "express";
-import Cart from "../managers/mongoDB/cartDB.js";
+// import Cart from "./managers/mongoDB/cartDB.js";
 export const carritoRouter = Router();
-import { cartModels } from "../mongo/models/cart.js";
-import ContenedorProducts from "../managers/mongoDB/getItems.js";
-import { productModels } from "../mongo/models/product.js";
+// import { cartModels } from "../mongo/models/cart.js";
+// import ContenedorProducts from "../managers/mongoDB/getItems.js";
+// import { productModels } from "../mongo/models/product.js";
 // const carritoProductos = new Cart(cartModels)
 // const productosEnBD = new ContenedorProducts(productModels)
-
-import { contenedorDaoProd } from "../daos/index.js"
-import { contenedorDaoCart } from "../daos/index.js"
+import { contenedorDaoProd } from "../../daos/index.js"
+import { contenedorDaoCart } from "../../daos/index.js"
 const productosEnBD = contenedorDaoProd
 const carritoProductos = contenedorDaoCart
 import { checkLogin } from "../../middlewares/checkLogin.js";
@@ -30,7 +29,7 @@ const actualizarProducto = (productoaActualizar) => {
 
 //Funcion para  desestructurar el primer ingreso del producto al carrito
 //Con el fin de que el stock sea 1
-const primerStock = (productoASacarPrimerStock) => {
+const primerStock = (productoASacarPrimerStock, usuario) => {
     const { id, title, price, thumbnail, descripcion, timestamp, codigo } = productoASacarPrimerStock
     const newProduct = {
         id: id,
@@ -40,20 +39,23 @@ const primerStock = (productoASacarPrimerStock) => {
         codigo: codigo,
         price: price,
         thumbnail: thumbnail,
-        stock: 1
+        stock: 1,
+        usuario: usuario
     };
+    console.log(newProduct)
     return newProduct
 }
 
 // Crea un carrito y agrega UN DATO
 carritoRouter.post("/", async (req, res) => {
+    const usuario = req.user.userName
     try {
         const idAActualizar = req.body.id
-        const productoByID = await productosEnBD.getByID(idAActualizar)
+        let productoByID = await productosEnBD.getByID(idAActualizar)
         if (productoByID != undefined) {
-            const prodByIDMg = productoByID[0]
+            let prodByIDMg = productoByID[0]
             if (productoByID.stock > 0) {
-                const newCarrito = primerStock(productoByID)
+                const newCarrito = primerStock(productoByID, usuario)
                 await carritoProductos.save(newCarrito)
                 const todosLosCarritos = await carritoProductos.getAllCarritos()
                 const carritoAMostrar = todosLosCarritos[todosLosCarritos.length - 1]
@@ -65,8 +67,8 @@ carritoRouter.post("/", async (req, res) => {
             } else if (prodByIDMg.stock > 0) {
                 prodByIDMg.stock = prodByIDMg.stock - 1
                 await productosEnBD.updateById(idAActualizar, prodByIDMg)
-                const carrito = await carritoProductos.save(prodByIDMg)
-                res.json(carrito)
+                const carrito = await carritoProductos.save(prodByIDMg, usuario)
+                res.json({ messages: "Se creo el carrito:", carrito })
             }
             else {
                 res.json({
@@ -86,6 +88,7 @@ carritoRouter.post("/", async (req, res) => {
 
 //Obtiene todos los coarritos
 carritoRouter.get("/", checkLogin, async (req, res) => {
+
     try {
         const carritos = await carritoProductos.getAllCarritos()
         res.json({

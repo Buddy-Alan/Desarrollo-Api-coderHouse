@@ -1,4 +1,5 @@
-import Cart from "../../managers/mongoDB/cartDB.js";
+
+import Cart from "../../managers/mongo/cartDB.js"
 
 class CartsDatosMgDB extends Cart {
     constructor(fileName) {

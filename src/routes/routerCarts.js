@@ -47,7 +47,7 @@ const primerStock = (productoASacarPrimerStock, usuario) => {
 }
 
 // Crea un carrito y agrega UN DATO
-carritoRouter.post("/", async (req, res) => {
+carritoRouter.post("/", checkLogin, async (req, res) => {
     const usuario = req.user.userName
     try {
         const idAActualizar = req.body.id
@@ -127,43 +127,49 @@ carritoRouter.get("/:id", checkLogin, async (req, res) => {
 
 
 // //Obtengo todos los productos de ese carrito.
-carritoRouter.get("/:id/productos", async (req, res) => {
+carritoRouter.get("/:id/productos", checkLogin, async (req, res) => {
     const idSolicitado = (req.params.id)
     try {
         const carritoByID = await carritoProductos.getCarritoByID(idSolicitado)
         console.log(carritoByID)
-        switch (carritoByID) {
-            case 1:
-                res.json({
-                    message: `El Carrito con id ${idSolicitado} no existe`
-                });
-                break;
-            case undefined:
-                res.json({
-                    message: `El Carrito con id ${idSolicitado} no existe`
-                });
-                break;
-            case 2:
-                res.json({
-                    message: `Actualmente no existe ningun carrito creado`
-                });
-                break;
-            default:
-                //Se ustiliza la funcion Array.isArray() Con el objetivo de que me devuelva un valor de verdad
-                //Para poder comprar si trabajmos con un objeto o con un array
-                const esArray = Array.isArray(carritoByID)
-                if (esArray) {
-                    const productosCarrito = carritoByID[0].productos
+        if (carritoByID[0].userName == req.user.userName) {
+            switch (carritoByID) {
+                case 1:
                     res.json({
-                        message: `El carrito ${idSolicitado} tiene los productos:`,
-                        productos: productosCarrito.productos
-                    })
-                } else {
+                        message: `El Carrito con id ${idSolicitado} no existe`
+                    });
+                    break;
+                case undefined:
                     res.json({
-                        message: `El carrito ${idSolicitado} tiene los productos:`,
-                        productos: carritoByID.productos
-                    })
-                }
+                        message: `El Carrito con id ${idSolicitado} no existe`
+                    });
+                    break;
+                case 2:
+                    res.json({
+                        message: `Actualmente no existe ningun carrito creado`
+                    });
+                    break;
+                default:
+                    //Se ustiliza la funcion Array.isArray() Con el objetivo de que me devuelva un valor de verdad
+                    //Para poder comprar si trabajmos con un objeto o con un array
+                    const esArray = Array.isArray(carritoByID)
+                    if (esArray) {
+                        const productosCarrito = carritoByID[0].productos
+                        console.log(productosCarrito)
+                        res.json({
+                            message: `El carrito ${idSolicitado} tiene los productos:`,
+                            productos: productosCarrito
+                        })
+                    } else {
+                        res.json({
+                            message: `El carrito ${idSolicitado} tiene los productos:`,
+                            productos: carritoByID.productos
+                        })
+                    }
+            }
+        }
+        else {
+            res.json({ messages: `Su usuario ${req.user.userName}, no posee acceso a este carrito de compras` })
         }
     } catch (error) {
         console.log(error)
@@ -172,116 +178,119 @@ carritoRouter.get("/:id/productos", async (req, res) => {
 
 
 // //Para actualizar und dato del carrito, o agregar items al carrito
-carritoRouter.post("/:id/productos", async (req, res) => {
+carritoRouter.post("/:id/productos", checkLogin, async (req, res) => {
     const idSolicitado = (req.params.id)
     const idProducto = (req.body.id)
     try {
         const carritoByID = await carritoProductos.getCarritoByID(idSolicitado)
-        console.log(carritoByID == "")
-        switch (carritoByID) {
-            case 1:
-                res.json({
-                    message: `El Carrito con id ${idSolicitado} no existe`
-                });
-                break;
-            case undefined:
-                res.json({
-                    message: `El Carrito con id ${idSolicitado} no existe`
-                });
-                break;
+        if (carritoByID[0].userName == req.user.userName) {
+            switch (carritoByID) {
+                case 1:
+                    res.json({
+                        message: `El Carrito con id ${idSolicitado} no existe`
+                    });
+                    break;
+                case undefined:
+                    res.json({
+                        message: `El Carrito con id ${idSolicitado} no existe`
+                    });
+                    break;
 
-            case 2:
-                res.json({
-                    message: `Actualmente no existe ningun carrito creado`
-                });
-                break;
-            case undefined:
-                res.json({
-                    message: `El archivo esta vacio`
-                })
-                break;
-            default:
-                const productoByID = await productosEnBD.getByID(idProducto);
-                if (Array.isArray(productoByID)) {
-                    const productoIDMg = productoByID[0]
-                    if (productoIDMg.stock > 0) {
-                        if (carritoByID == "") {
-                            res.json({
-                                message: `El Carrito con id ${idSolicitado} no existe`
-                            });
+                case 2:
+                    res.json({
+                        message: `Actualmente no existe ningun carrito creado`
+                    });
+                    break;
+                case undefined:
+                    res.json({
+                        message: `El archivo esta vacio`
+                    })
+                    break;
+                default:
+                    const productoByID = await productosEnBD.getByID(idProducto);
+                    if (Array.isArray(productoByID)) {
+                        const productoIDMg = productoByID[0]
+                        if (productoIDMg.stock > 0) {
+                            if (carritoByID == "") {
+                                res.json({
+                                    message: `El Carrito con id ${idSolicitado} no existe`
+                                });
+                            }
+                            else {
+                                let prodCartMg = carritoByID[0].productos
+                                const findIndex = prodCartMg.findIndex(e => e.title === productoIDMg.title)
+                                if (findIndex != -1) {
+                                    prodCartMg[findIndex].stock = prodCartMg[findIndex].stock + 1
+                                    const carritoNuevo = await carritoProductos.updateCarritoByID(idSolicitado, prodCartMg)
+                                    productoIDMg.stock = productoIDMg.stock - 1
+                                    await productosEnBD.updateById(idProducto, productoIDMg)
+                                    res.json({
+                                        message: "Carrito Actualizado con exito",
+                                        carrito: carritoNuevo
+                                    })
+                                } else {
+                                    productoIDMg.stock = productoIDMg.stock - 1
+                                    await productosEnBD.updateById(idProducto, productoIDMg)
+                                    productoIDMg.stock = 1
+                                    prodCartMg = prodCartMg.concat(productoIDMg)
+                                    const carritoNuevo = await carritoProductos.updateCarritoByID(idSolicitado, prodCartMg)
+                                    res.json({
+                                        message: "Carrito Actualizado con exito",
+                                        carrito: carritoNuevo
+                                    })
+                                }
+                            }
                         }
                         else {
-                            let prodCartMg = carritoByID[0].productos
-                            const findIndex = prodCartMg.findIndex(e => e.title === productoIDMg.title)
-                            if (findIndex != -1) {
-                                prodCartMg[findIndex].stock = prodCartMg[findIndex].stock + 1
-                                const carritoNuevo = await carritoProductos.updateCarritoByID(idSolicitado, prodCartMg)
-                                productoIDMg.stock = productoIDMg.stock - 1
-                                await productosEnBD.updateById(idProducto, productoIDMg)
-                                res.json({
-                                    message: "Carrito Actualizado con exito",
-                                    carrito: carritoNuevo
-                                })
-                            } else {
-                                productoIDMg.stock = productoIDMg.stock - 1
-                                await productosEnBD.updateById(idProducto, productoIDMg)
-                                productoIDMg.stock = 1
-                                prodCartMg = prodCartMg.concat(productoIDMg)
-                                const carritoNuevo = await carritoProductos.updateCarritoByID(idSolicitado, prodCartMg)
-                                res.json({
-                                    message: "Carrito Actualizado con exito",
-                                    carrito: carritoNuevo
-                                })
-
-                            }
+                            res.json({
+                                message: `No hay suficiente stock del producto de id: ${productoIDMg.id}`
+                            })
                         }
                     }
                     else {
-                        res.json({
-                            message: `No hay suficiente stock del producto de id: ${productoIDMg.id}`
-                        })
-                    }
-                }
-                else {
-                    if (productoByID != undefined) {
-                        if (productoByID.stock > 0) {
-                            const indexDelProducto = carritoByID.productos.findIndex(elemen => elemen.id === productoByID.id)
-                            if (indexDelProducto != -1) {
-                                carritoByID.productos[indexDelProducto].stock = carritoByID.productos[indexDelProducto].stock + 1
-                                carritoProductos.updateCarritoByID(idSolicitado, carritoByID.productos)
-                                res.json({
-                                    message: `Se actualizo el carrito ${idSolicitado} correctamente`,
-                                    productos: carritoByID.productos
-                                })
-                                actualizarProducto(productoByID)
+                        if (productoByID != undefined) {
+                            if (productoByID.stock > 0) {
+                                const indexDelProducto = carritoByID.productos.findIndex(elemen => elemen.id === productoByID.id)
+                                if (indexDelProducto != -1) {
+                                    carritoByID.productos[indexDelProducto].stock = carritoByID.productos[indexDelProducto].stock + 1
+                                    carritoProductos.updateCarritoByID(idSolicitado, carritoByID.productos)
+                                    res.json({
+                                        message: `Se actualizo el carrito ${idSolicitado} correctamente`,
+                                        productos: carritoByID.productos
+                                    })
+                                    actualizarProducto(productoByID)
+                                } else {
+                                    const newProduct = primerStock(productoByID)
+                                    carritoByID.productos.push(newProduct)
+                                    carritoProductos.updateCarritoByID(idSolicitado, carritoByID.productos)
+                                    res.json({
+                                        message: `Se actualizo el carrito ${idSolicitado} correctamente`,
+                                        productos: carritoByID.productos
+                                    })
+                                    actualizarProducto(productoByID)
+                                }
                             } else {
-                                const newProduct = primerStock(productoByID)
-                                carritoByID.productos.push(newProduct)
-                                carritoProductos.updateCarritoByID(idSolicitado, carritoByID.productos)
                                 res.json({
-                                    message: `Se actualizo el carrito ${idSolicitado} correctamente`,
-                                    productos: carritoByID.productos
+                                    message: `No hay suficiente stock del producto de id: ${productoByID.id}`
                                 })
-                                actualizarProducto(productoByID)
                             }
                         } else {
                             res.json({
-                                message: `No hay suficiente stock del producto de id: ${productoByID.id}`
+                                message: `El producto de id: ${idProducto}, no existe`
                             })
                         }
-                    } else {
-                        res.json({
-                            message: `El producto de id: ${idProducto}, no existe`
-                        })
                     }
-                }
+            }
+        }
+        else {
+            res.json({ message: `El carrito no corresponde la usuario ${req.user.userName}` })
         }
     } catch (error) {
         console.log(error)
     }
 })
 
-carritoRouter.delete("/:id", async (req, res) => {
+carritoRouter.delete("/:id", checkLogin, async (req, res) => {
     const { id } = req.params
     try {
         const carritoAeliminar = await carritoProductos.deleteCarritoByID(id)
@@ -305,7 +314,7 @@ carritoRouter.delete("/:id", async (req, res) => {
     }
 })
 
-carritoRouter.delete("/:id/productos/:id_prod", async (req, res) => {
+carritoRouter.delete("/:id/productos/:id_prod", checkLogin, async (req, res) => {
     const idSolicitado = (req.params.id)
     const idProducto = (req.params.id_prod)
     try {
@@ -371,6 +380,35 @@ carritoRouter.delete("/:id/productos/:id_prod", async (req, res) => {
     } catch (error) {
         console.log(error)
     }
+})
+carritoRouter.post("/:id/pago", checkLogin, async (req, res) => {
+    const idSolicitado = req.params.id
+    const finalizar = req.body.fin
+    try {
+        const carritoByID = await carritoProductos.getCarritoByID(idSolicitado)
+        if (carritoByID[0].userName == req.user.userName) {
+            const productosCart = carritoByID[0].productos
+            const productos = productosCart.map(producto => {
+                let compra = [{
+                    "Producto ": producto.title,
+                    "Cantidad Solicitada": producto.stock,
+                    "Precio Unitario": producto.price
+                }]
+                return compra
+            })
+            if (finalizar == "si") {
+                res.json({
+                    message: `El usuario ${req.user.userName} solicito la compra de los productos`,
+                    Compra: productos
+                })
+            } else {
+                res.json({ messages: "Se cancela el proceso de finalizacion de la compra" })
+            }
+        } else {
+            res.json({ message: `El carrito no corresponde la usuario ${req.user.userName}` })
+        }
+    }
+    catch (error) { }
 })
 
 

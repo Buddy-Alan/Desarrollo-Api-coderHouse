@@ -12,7 +12,10 @@ import { contenedorDaoCart } from "../../daos/index.js"
 const productosEnBD = contenedorDaoProd
 const carritoProductos = contenedorDaoCart
 import { checkLogin } from "../../middlewares/checkLogin.js";
-
+import { tpEmail } from "../messages/email.js";
+import { logger } from "../../logger.js";
+import { config } from "../../config/configDotenv.js";
+import { twAdmP, twClient, adminWSP, twAdmWSP } from "../messages/twilio.js";
 
 // const express = require("express")
 // const Cart = require("../cart")
@@ -396,7 +399,49 @@ carritoRouter.post("/:id/pago", checkLogin, async (req, res) => {
                 }]
                 return compra
             })
+            const prodEmail = JSON.stringify(productos, null, 2)
+            //Envio Email
             if (finalizar == "si") {
+                tpEmail.sendMail({
+                    from: "Node",
+                    to: config.EmailAdm,
+                    subject: `Nueva Compra del usuario:${req.user.name},  del mail:${req.user.userName}`,
+                    text: `Solicito los siguientes productos:  ${prodEmail}
+                    `
+                },
+                    (error, response) => {
+                        if (error) {
+                            logger.info(error)
+                            logger.error(`Se produjo un error al enviar el email al admin ${error}`)
+                        } else {
+                            logger.info("Se registro el usuario correctamente")
+                        }
+                    })
+                //Envio whatsapp
+                twClient.messages.create({
+                    body: `Nueva Compra del usuario:${req.user.name},  del mail:${req.user.userName}`,
+                    from: `whatsapp:${config.TwilloAdminWsp}`,
+                    to: `whatsapp:${config.AdminWSP}`
+                }, (error) => {
+                    if (error) {
+                        logger.error(`Se produjo un error al enviar el mensaje de whatsapp al admin ${error}`)
+                    } else {
+                        logger.info(`Se envio el mensaje correcatamente`)
+                    }
+                })
+                // Envio SMS 
+                //body: `Se confirmo el carrito con los productos: ${prodEmail}`,
+                twClient.messages.create({
+                    body: `El pedido se recibio, y esta en proceso`,
+                    from: config.TwilloAdminTel,
+                    to: `+${req.user.tel}`
+                }, (error) => {
+                    if (error) {
+                        logger.error(`Se produjo un error al enviar el mensaje de tecto al admin ${error}`)
+                    } else {
+                        logger.info(`Se envio el mensaje correcatamente`)
+                    }
+                })
                 res.json({
                     message: `El usuario ${req.user.userName} solicito la compra de los productos`,
                     Compra: productos
@@ -408,7 +453,10 @@ carritoRouter.post("/:id/pago", checkLogin, async (req, res) => {
             res.json({ message: `El carrito no corresponde la usuario ${req.user.userName}` })
         }
     }
-    catch (error) { }
+    catch (error) {
+        logger.info(error)
+        logger.error(error)
+    }
 })
 
 

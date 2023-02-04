@@ -29,7 +29,7 @@ const usersSchema = new mongoose.Schema(
             require: true
         },
         tel: {
-            type: Number,
+            type: String,
             require: true
         }
     }

@@ -33,10 +33,12 @@
     "minimist": "^1.2.7",
     "mongoose": "^6.7.3",
     "mongose": "^0.0.2-security",
+    "nodemailer": "^6.9.1",
     "normalizr": "^3.6.2",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
     "socket.io": "^4.5.4",
+    "twilio": "^3.84.1",
     "window": "^4.2.7"
   },
   "devDependencies": {

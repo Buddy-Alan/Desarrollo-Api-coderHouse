@@ -18,7 +18,7 @@ const logger = log4js.getLogger()
 
 // logger.trace("Imprimieendo mensaje de nivel trace");
 // // logger.debug("mensaje de nivel debug");
-logger.info("mensaje de nivel info");
+// logger.info("mensaje de nivel info");
 // logger.warn("mensaje de nivel warn");
 // logger.error("mensaje de nivel error");
 // logger.fatal("mensaje de nivel fatal");

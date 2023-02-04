@@ -15,7 +15,7 @@ export const config = {
     PassAdm: process.env.PassAdmin,
     TwilloAdminTel: process.env.TwAdmin,
     TwilloAdminWsp: process.env.TwAdmWSP,
-    AdminWSP: process.env.AdminWSP,
+    AdminWSP: process.env.AdminWSP
 }
 
 //Ver de cambiar el nombre de la base de datos a ecommerce

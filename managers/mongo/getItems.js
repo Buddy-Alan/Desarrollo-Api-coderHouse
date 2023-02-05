@@ -1,4 +1,4 @@
-
+import { logger } from "../../logger.js";
 class ContenedorProducts {
     constructor(dataBase) {
         this.dataBase = dataBase;
@@ -20,6 +20,7 @@ class ContenedorProducts {
             }
         }
         catch (error) {
+            logger.error(error)
             return 2
         }
     } //Aca termina la funcion Save()
@@ -30,7 +31,7 @@ class ContenedorProducts {
             const allProd = this.dataBase.find()
             return (allProd)
         } catch (error) {
-            console.log(error)
+            logger.error(error)
         }
     }
 
@@ -39,7 +40,7 @@ class ContenedorProducts {
             const producID = await this.dataBase.find({ _id: id })
             return producID
         } catch (error) {
-            console.log(error)
+            logger.error(error)
         }
     }
 
@@ -52,7 +53,7 @@ class ContenedorProducts {
                 const prodUpdate = await this.getByID(id)
                 return prodUpdate
             } catch (error) {
-                console.log(error)
+                logger.error(error)
             }
         } else {
             return (1)
@@ -70,7 +71,7 @@ class ContenedorProducts {
                 return ("El producto no existe")
             }
         } catch (error) {
-            console.log(error)
+            logger.error(error)
         }
     }
 }

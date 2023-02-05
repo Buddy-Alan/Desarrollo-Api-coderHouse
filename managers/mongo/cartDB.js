@@ -1,4 +1,4 @@
-
+import { logger } from "../../logger.js";
 
 class Cart {
     constructor(dataBase) {
@@ -7,21 +7,25 @@ class Cart {
 
     save = async (carritoNuevo, user) => {
         try {
-            carritoNuevo.stock = 1
-            const carrito = await this.dataBase.insertMany({ timestamp: new Date(), userName: user, productos: carritoNuevo })
-            return carrito
+            const existeCarrito = await this.dataBase.find({ "userName": user })
+            if (existeCarrito == "") {
+                carritoNuevo.stock = 1
+                const carrito = await this.dataBase.insertMany({ timestamp: new Date(), userName: user, productos: carritoNuevo })
+                return carrito
+            } else {
+                return false
+            }
         } catch (error) {
-            console.log(error)
+            logger.error(error)
         }
     } //Fin del if de "Save"
-
 
     getAllCarritos = async () => {
         try {
             const carritos = await this.dataBase.find()
             return carritos
         } catch (error) {
-            console.log(error)
+            logger.error(error)
         }
     }
 
@@ -31,7 +35,7 @@ class Cart {
             const carritos = await this.dataBase.find({ _id: idDelCarrito })
             return carritos
         } catch (error) {
-            console.log(error)
+            logger.error(error)
         }
 
     }
@@ -49,7 +53,7 @@ class Cart {
                 return carrito
             }
         } catch (error) {
-            console.log(error)
+            logger.error(error)
         }
     }
 
@@ -64,7 +68,7 @@ class Cart {
             }
 
         } catch (error) {
-            console.log(error)
+            logger.error(error)
         }
     }
 }

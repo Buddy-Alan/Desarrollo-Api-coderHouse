@@ -1,12 +1,6 @@
 
 import { Router } from "express";
-// import Cart from "./managers/mongoDB/cartDB.js";
 export const carritoRouter = Router();
-// import { cartModels } from "../mongo/models/cart.js";
-// import ContenedorProducts from "../managers/mongoDB/getItems.js";
-// import { productModels } from "../mongo/models/product.js";
-// const carritoProductos = new Cart(cartModels)
-// const productosEnBD = new ContenedorProducts(productModels)
 import { contenedorDaoProd } from "../../daos/index.js"
 import { contenedorDaoCart } from "../../daos/index.js"
 const productosEnBD = contenedorDaoProd
@@ -15,14 +9,8 @@ import { checkLogin } from "../../middlewares/checkLogin.js";
 import { tpEmail } from "../messages/email.js";
 import { logger } from "../../logger.js";
 import { config } from "../../config/configDotenv.js";
-import { twAdmP, twClient, adminWSP, twAdmWSP } from "../messages/twilio.js";
+import { twClient } from "../messages/twilio.js";
 
-// const express = require("express")
-// const Cart = require("../cart")
-// const carritoRouter = express.Router();
-// const Contenedor = require("../getItems")
-// const carritoProductos = new Cart("carrito.txt")
-// const productosEnBD = new Contenedor("productos.txt")
 
 //Funcion para actualizar el stock del producto
 const actualizarProducto = (productoaActualizar) => {
@@ -45,7 +33,6 @@ const primerStock = (productoASacarPrimerStock, usuario) => {
         stock: 1,
         usuario: usuario
     };
-    console.log(newProduct)
     return newProduct
 }
 
@@ -58,6 +45,7 @@ carritoRouter.post("/", checkLogin, async (req, res) => {
         if (productoByID != undefined) {
             let prodByIDMg = productoByID[0]
             if (productoByID.stock > 0) {
+                //Guarda Datos en FS
                 const newCarrito = primerStock(productoByID, usuario)
                 await carritoProductos.save(newCarrito)
                 const todosLosCarritos = await carritoProductos.getAllCarritos()
@@ -68,10 +56,15 @@ carritoRouter.post("/", checkLogin, async (req, res) => {
                 })
                 actualizarProducto(productoByID)
             } else if (prodByIDMg.stock > 0) {
+                //Guarda Datos en MGDB
                 prodByIDMg.stock = prodByIDMg.stock - 1
                 await productosEnBD.updateById(idAActualizar, prodByIDMg)
                 const carrito = await carritoProductos.save(prodByIDMg, usuario)
-                res.json({ messages: "Se creo el carrito:", carrito })
+                if (carrito) {
+                    res.json({ messages: "Se creo el carrito:", carrito })
+                } else {
+                    res.json({ messages: "Usted ya tiene un carrito creado, por favor  siga trabajando con el mismo" })
+                }
             }
             else {
                 res.json({
@@ -84,10 +77,11 @@ carritoRouter.post("/", checkLogin, async (req, res) => {
             })
         }
     } catch (error) {
-        console.log(error)
+        logger.error(error)
 
     }
 })
+
 
 //Obtiene todos los coarritos
 carritoRouter.get("/", checkLogin, async (req, res) => {
@@ -98,7 +92,7 @@ carritoRouter.get("/", checkLogin, async (req, res) => {
             prod: carritos
         })
     } catch (error) {
-        console.log(error)
+        logger.error(error)
     }
 })
 
@@ -123,7 +117,7 @@ carritoRouter.get("/:id", checkLogin, async (req, res) => {
             })
         }
     } catch (error) {
-        console.log(error)
+        logger.error(error)
     }
 })
 
@@ -134,7 +128,6 @@ carritoRouter.get("/:id/productos", checkLogin, async (req, res) => {
     const idSolicitado = (req.params.id)
     try {
         const carritoByID = await carritoProductos.getCarritoByID(idSolicitado)
-        console.log(carritoByID)
         if (carritoByID[0].userName == req.user.userName) {
             switch (carritoByID) {
                 case 1:
@@ -158,7 +151,6 @@ carritoRouter.get("/:id/productos", checkLogin, async (req, res) => {
                     const esArray = Array.isArray(carritoByID)
                     if (esArray) {
                         const productosCarrito = carritoByID[0].productos
-                        console.log(productosCarrito)
                         res.json({
                             message: `El carrito ${idSolicitado} tiene los productos:`,
                             productos: productosCarrito
@@ -175,7 +167,7 @@ carritoRouter.get("/:id/productos", checkLogin, async (req, res) => {
             res.json({ messages: `Su usuario ${req.user.userName}, no posee acceso a este carrito de compras` })
         }
     } catch (error) {
-        console.log(error)
+        logger.error(error)
     }
 })
 
@@ -184,32 +176,32 @@ carritoRouter.get("/:id/productos", checkLogin, async (req, res) => {
 carritoRouter.post("/:id/productos", checkLogin, async (req, res) => {
     const idSolicitado = (req.params.id)
     const idProducto = (req.body.id)
+    const usuario = req.user.userName
     try {
         const carritoByID = await carritoProductos.getCarritoByID(idSolicitado)
-        if (carritoByID[0].userName == req.user.userName) {
-            switch (carritoByID) {
-                case 1:
-                    res.json({
-                        message: `El Carrito con id ${idSolicitado} no existe`
-                    });
-                    break;
-                case undefined:
-                    res.json({
-                        message: `El Carrito con id ${idSolicitado} no existe`
-                    });
-                    break;
-
-                case 2:
-                    res.json({
-                        message: `Actualmente no existe ningun carrito creado`
-                    });
-                    break;
-                case undefined:
-                    res.json({
-                        message: `El archivo esta vacio`
-                    })
-                    break;
-                default:
+        switch (carritoByID) {
+            case 1:
+                res.json({
+                    message: `El Carrito con id ${idSolicitado} no existe`
+                });
+                break;
+            case undefined:
+                res.json({
+                    message: `El Carrito con id ${idSolicitado} no existe`
+                });
+                break;
+            case 2:
+                res.json({
+                    message: `Actualmente no existe ningun carrito creado`
+                });
+                break;
+            case undefined:
+                res.json({
+                    message: `El archivo esta vacio`
+                })
+                break;
+            default:
+                if (carritoByID[0].userName == usuario) {
                     const productoByID = await productosEnBD.getByID(idProducto);
                     if (Array.isArray(productoByID)) {
                         const productoIDMg = productoByID[0]
@@ -250,6 +242,7 @@ carritoRouter.post("/:id/productos", checkLogin, async (req, res) => {
                             })
                         }
                     }
+
                     else {
                         if (productoByID != undefined) {
                             if (productoByID.stock > 0) {
@@ -283,13 +276,14 @@ carritoRouter.post("/:id/productos", checkLogin, async (req, res) => {
                             })
                         }
                     }
-            }
+                } else {
+                    res.json({ message: `El carrito no corresponde la usuario ${req.user.userName}` })
+                }
         }
-        else {
-            res.json({ message: `El carrito no corresponde la usuario ${req.user.userName}` })
-        }
-    } catch (error) {
-        console.log(error)
+    }
+
+    catch (error) {
+        logger.error(error)
     }
 })
 
@@ -313,7 +307,7 @@ carritoRouter.delete("/:id", checkLogin, async (req, res) => {
         }
 
     } catch (error) {
-        console.log(error)
+        logger.error(error)
     }
 })
 
@@ -381,7 +375,7 @@ carritoRouter.delete("/:id/productos/:id_prod", checkLogin, async (req, res) => 
                 }
         }
     } catch (error) {
-        console.log(error)
+        logger.error(error)
     }
 })
 carritoRouter.post("/:id/pago", checkLogin, async (req, res) => {
@@ -437,7 +431,7 @@ carritoRouter.post("/:id/pago", checkLogin, async (req, res) => {
                     to: `+${req.user.tel}`
                 }, (error) => {
                     if (error) {
-                        logger.error(`Se produjo un error al enviar el mensaje de tecto al admin ${error}`)
+                        logger.error(`Se produjo un error al enviar el mensaje de texto al admin ${error}`)
                     } else {
                         logger.info(`Se envio el mensaje correcatamente`)
                     }
@@ -454,7 +448,6 @@ carritoRouter.post("/:id/pago", checkLogin, async (req, res) => {
         }
     }
     catch (error) {
-        logger.info(error)
         logger.error(error)
     }
 })

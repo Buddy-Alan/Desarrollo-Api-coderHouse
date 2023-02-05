@@ -12,3 +12,19 @@
 [2023-02-03T20:53:47.686] [ERROR] default - Se produjo un error al enviar el mensaje de tecto al admin Error: The number  is unverified. Trial accounts cannot send messages to unverified numbers; verify  at twilio.com/user/account/phone-numbers/verified, or purchase a Twilio number to send messages to unverified numbers.
 [2023-02-03T20:55:07.834] [ERROR] default - Se produjo un error al enviar el mensaje de tecto al admin Error: The number  is unverified. Trial accounts cannot send messages to unverified numbers; verify  at twilio.com/user/account/phone-numbers/verified, or purchase a Twilio number to send messages to unverified numbers.
 [2023-02-03T21:35:14.733] [ERROR] default - Se produjo un error al enviar el mensaje de whatsapp al admin Error: The 'From' number whatsapp:+14155238886  is not a valid phone number, shortcode, or alphanumeric sender ID.
+[2023-02-04T21:00:38.235] [ERROR] default - TypeError: Cannot read properties of undefined (reading 'userName')
+    at file:///D:/Coder%20House/BackEnd/Desafio%2017/src/routes/routerCarts.js:190:36
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[2023-02-04T21:00:55.415] [ERROR] default - TypeError: Cannot read properties of undefined (reading '0')
+    at file:///D:/Coder%20House/BackEnd/Desafio%2017/src/routes/routerCarts.js:190:32
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[2023-02-04T21:05:07.560] [ERROR] default - Se produjo un error al enviar el mensaje de tecto al admin Error: Authenticate
+[2023-02-04T21:05:07.573] [ERROR] default - Se produjo un error al enviar el mensaje de whatsapp al admin Error: Authenticate
+[2023-02-04T21:06:00.180] [ERROR] default - Se produjo un error al enviar el mensaje de tecto al admin Error: Authenticate
+[2023-02-04T21:06:00.183] [ERROR] default - Se produjo un error al enviar el mensaje de whatsapp al admin Error: Authenticate
+[2023-02-04T21:06:11.292] [ERROR] default - Se produjo un error al enviar el mensaje de tecto al admin Error: Authenticate
+[2023-02-04T21:06:11.293] [ERROR] default - Se produjo un error al enviar el mensaje de whatsapp al admin Error: Authenticate
+[2023-02-04T21:07:49.912] [ERROR] default - Se produjo un error al enviar el mensaje de whatsapp al admin Error: Authenticate
+[2023-02-04T21:07:49.914] [ERROR] default - Se produjo un error al enviar el mensaje de tecto al admin Error: Authenticate
+[2023-02-04T21:09:12.335] [ERROR] default - Se produjo un error al enviar el mensaje de texto al admin Error: Authenticate
+[2023-02-04T21:09:12.342] [ERROR] default - Se produjo un error al enviar el mensaje de whatsapp al admin Error: Authenticate

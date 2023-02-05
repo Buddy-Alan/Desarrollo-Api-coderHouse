@@ -68,7 +68,6 @@ login.post("/login", (req, res) => {
         if (error || !user) return res.json({ messages: info.messages })
         req.logIn(user, (error) => {
             if (error) return res.json({ messages: "Hubo un error" })
-            console.log(req.user)
             res.json({ user, messages: info.messages })
         })
     })(req, res)

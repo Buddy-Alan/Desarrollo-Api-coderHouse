@@ -3,6 +3,7 @@ export const router = Router();
 import { contenedorDaoProd } from "../../daos/index.js";
 const productos = contenedorDaoProd
 import { checkLogin } from "../../middlewares/checkLogin.js";
+import { logger } from "../../logger.js";
 
 const verificarRol = ((req, res, next) => {
     const rol = "admin";
@@ -18,7 +19,6 @@ const verificarRol = ((req, res, next) => {
 router.get("/", checkLogin, async (req, res) => {
     try {
         const productosAMostrar = await productos.getAll()
-        console.log(productosAMostrar)
         if (productosAMostrar == "" || productosAMostrar == 1) {
             res.json({
                 message: "El archivo esta vacio"
@@ -80,7 +80,7 @@ router.post("/", verificarRol, async (req, res) => {
             })
         }
     } catch (error) {
-        console.log(error)
+        logger.error(error)
         res.status(500).send("Hubo un error en el Servidor")
     }
 })
@@ -118,7 +118,7 @@ router.delete("/:id", verificarRol, async (req, res) => {
             message: productoAEliminar
         })
     } catch (error) {
-        console.log(error)
+        logger.error(error)
     }
 })
 

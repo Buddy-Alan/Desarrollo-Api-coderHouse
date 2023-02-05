@@ -11,19 +11,6 @@ import { logger } from "../../logger.js";
 const login = Router()
 
 
-
-login.get("/register", (req, res) => {
-
-    if (!req.isAuthenticated()) {
-        const errorMensaje = req.session.messages ? req.session.messages[0] : ""
-        // req.session.messages = [];
-        res.json({ messages: errorMensaje })
-        rutaGet(req.path)
-    } else {
-        res.redirect("/ ")
-    }
-})
-
 login.post("/register", (req, res) => {
 
     passport.authenticate("singup", (error, user, info) => {
@@ -49,19 +36,7 @@ login.post("/register", (req, res) => {
     // rutaPost(req.path)
 });
 
-login.get("/login", async (req, res) => {
-    if (!req.isAuthenticated()) {
-        const errorMensaje = req.session.messages ? req.session.messages[0] : ""
-        res.render("formLogin", { error: errorMensaje })
-        req.session.messages = [];
-        rutaGet(req.path)
-
-    } else {
-        res.redirect("/")
-    }
-})
-
-login.post("/login", (req, res) => {
+("/login", (req, res) => {
     rutaPost(req.path)
     passport.authenticate("login", (error, user, info) => {
 
@@ -76,15 +51,6 @@ login.post("/login", (req, res) => {
 })
 
 
-login.get("/logout", async (req, res) => {
-    if (req.isAuthenticated()) {
-        res.render("logout", { nombreUsuario: req.user.name })
-        rutaGet(req.path)
-    }
-    else {
-        res.redirect("/login")
-    }
-})
 
 login.post("/logout", async (req, res) => {
     req.logOut((error) => {

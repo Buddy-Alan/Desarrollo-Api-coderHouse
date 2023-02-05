@@ -48,7 +48,8 @@ login.post("/register") => Se utiliza para registrar al usuario y poder trabajar
 "password": String,
 "dir": String (direccion del usuario),
 "edad": Numero,
-"tel": String (al telefono ponerle la opcion de localidad).
+"tel": String (al telefono ponerle la opcion de localidad),
+"avatar":  sting Url de avatar
 
 login.post("/login") => se utiliza para inicar sesion en la app, si por 5 minutos el usuario no realiza ninguna peticion, la sesion se cierra automaticamente. Para iniciar sesion se requiere enviar:
 "userName": (email),
